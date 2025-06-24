@@ -1,0 +1,29 @@
+[package]
+name = "rust_undead"
+version = "0.1.0"
+description = ""
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "rust_undead"
+
+[features]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+cpi = ["no-entrypoint"]
+default = []
+idl-build = ["anchor-lang/idl-build"]
+
+[dependencies]
+anchor-lang = "0.31.0"
+ephemeral-rollups-sdk = { version = "0.2.4", features = ["anchor"] }
+ephemeral-vrf-sdk = {version = "0.1.2", features = ["anchor"]}
+
+bumpalo = "=3.14.0"
+
+ 
+[dev-dependencies]
+solana-sdk = "1.18.26"
+solana-program-test = "1.18.26"
