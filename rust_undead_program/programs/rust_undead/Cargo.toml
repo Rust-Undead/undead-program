@@ -9,19 +9,20 @@ crate-type = ["cdylib", "lib"]
 name = "rust_undead"
 
 [features]
+default = []
+custom-heap = []
+anchor-debug = []
+cpi = ["no-entrypoint"]
 no-entrypoint = []
 no-idl = []
 no-log-ix-name = []
-cpi = ["no-entrypoint"]
-default = []
 idl-build = ["anchor-lang/idl-build"]
 
 [dependencies]
-anchor-lang = "0.31.0"
+anchor-lang = { version = "0.31.1", features = ["init-if-needed"] }
 ephemeral-rollups-sdk = { version = "0.2.4", features = ["anchor"] }
 ephemeral-vrf-sdk = {version = "0.1.2", features = ["anchor"]}
 
-bumpalo = "=3.14.0"
 
  
 [dev-dependencies]

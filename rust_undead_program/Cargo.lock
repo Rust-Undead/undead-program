@@ -3531,7 +3531,6 @@ name = "rust_undead"
 version = "0.1.0"
 dependencies = [
  "anchor-lang",
- "bumpalo",
  "ephemeral-rollups-sdk",
  "ephemeral-vrf-sdk",
  "solana-program-test",

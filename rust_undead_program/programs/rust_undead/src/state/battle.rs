@@ -10,12 +10,11 @@ pub struct BattleRoom {
     pub warrior_a: Pubkey,                    // Player A's warrior
     pub warrior_b: Option<Pubkey>,            // Player B's warrior (None until joined)
     pub selected_concepts: [u8; 5],           // VRF-selected concept IDs [2, 5, 7, 9, 10]
-    pub selected_questions: [u16; 10],        // VRF-selected question IDs [23, 37, 68, ...]
+    pub selected_questions: [u16; 10],        // VRF-selected question IDs [23, 37,68, ...]
     pub correct_answers: [bool; 10],          // Correct answers for questions
     pub state: BattleState,                   // Current battle phase
     pub player_a_ready: bool,                 // Player A ready for battle
     pub player_b_ready: bool,                 // Player B ready for battle
-    pub delegated_at: Option<i64>,            // When delegated to rollup
     pub current_question: u8,                 // Current question index (0-9)
     pub player_a_answers: [Option<bool>; 10], // Player A's answers
     pub player_b_answers: [Option<bool>; 10], // Player B's answers
@@ -23,21 +22,18 @@ pub struct BattleRoom {
     pub player_b_correct: u8,                 // Player B's correct count
     pub winner: Option<Pubkey>,               // Battle winner
     pub battle_duration: u32,                 // Battle time in seconds
-    pub settled_at: Option<i64>,              // When settled to base layer
-    pub bump: u8,                             // PDA bump seed
+    pub bump: u8,  
+    pub battle_start_time: i64,                    
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, PartialEq, Eq)]
 pub enum BattleState {
     Created,              // Room created, selecting concepts
-    ConceptsSelected,     // Concepts selected, waiting for Player B
     Joined,              // Player B joined, selecting questions
     QuestionsSelected,    // Questions ready, study phase
     ReadyForDelegation,   // Both ready, can delegate
-    Delegated,           // Delegated to rollup
     InProgress,          // Battle happening
     Completed,           // Battle finished
-    Settled,             // Results on base layer
     Cancelled,           // Room cancelled
 }
 
@@ -45,6 +41,7 @@ impl Space for BattleState {
     const INIT_SPACE: usize = 1;
 }
 
+// create fxns that can be used for constraints and validations
 impl BattleRoom {
     // === PLAYER VALIDATION ===
     pub fn is_player_in_room(&self, player: &Pubkey) -> bool {
@@ -60,20 +57,13 @@ impl BattleRoom {
             None
         }
     }
-    
-    // === STATE CHECKS ===
-    pub fn can_start_battle(&self) -> bool {
-        self.player_a_ready && 
-        self.player_b_ready && 
-        self.state == BattleState::ReadyForDelegation
-    }
-    
+
     pub fn is_battle_active(&self) -> bool {
         self.state == BattleState::InProgress
     }
     
     pub fn is_battle_complete(&self) -> bool {
-        matches!(self.state, BattleState::Completed | BattleState::Settled)
+        matches!(self.state, BattleState::Completed)
     }
     
     // === PROGRESS ===
