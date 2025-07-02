@@ -49,7 +49,7 @@ use crate::constants::{ANCHOR_DISCRIMINATOR, CONFIG, LEADERBOARD};
 			 self.leaderboard.set_inner(
 				Leaderboard{
 					top_players: [Pubkey::default(); 20],
-					top_scores: [0u64; 20], 
+					top_scores: [0u32; 20], 
 					last_updated: clock.unix_timestamp,
 					bump: bumps.leaderboard,
 				}

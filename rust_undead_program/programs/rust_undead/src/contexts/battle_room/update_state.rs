@@ -173,8 +173,8 @@ impl<'info> UpdateState<'info> {
 
         let loser_score = battle_room.player_a_correct + battle_room.player_b_correct - winner_score;
 
-        let winner_xp = 40 + (winner_score as u64 * 4); 
-        let loser_xp = 20 + (loser_score as u64 * 2); 
+        let winner_xp = 40 + (winner_score as u32 * 4); 
+        let loser_xp = 20 + (loser_score as u32 * 2); 
 
         // ✅ Update User Profiles
         winner_profile.total_battles_won = winner_profile.total_battles_won.saturating_add(1);
@@ -201,11 +201,7 @@ impl<'info> UpdateState<'info> {
         loser_achievements.battle_achievement = calculate_battle_achievement(loser_profile.total_battles_fought);
         loser_achievements.overall_achievements = calculate_overall_achievement(loser_profile.total_points);
 
-        // ✅ Set first victory date if applicable
-        if winner_profile.total_battles_won == 1 && winner_achievements.first_victory_date == 0 {
-            winner_achievements.first_victory_date = current_time;
-            msg!("🎊 First victory achieved by {}!", winner_warrior.name);
-        }
+      
 
         msg!("🏅 Achievement Updates:");
         msg!("   {} - Winner: {:?}, Battle: {:?}, Overall: {:?}", 

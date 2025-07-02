@@ -6,7 +6,7 @@ pub struct Config {
 	pub admin: Pubkey,
 	pub total_warriors: u64,
     pub cooldown_time: u64,
-	pub total_battles: u64,
+	pub total_battles: u32,
 	pub is_paused: bool,
 	pub created_at: i64,
     pub bump: u8, // Bump seed for PDA
@@ -17,12 +17,12 @@ pub struct Config {
 pub struct UserProfile {
     pub owner: Pubkey,
     pub warriors_created: u32, 
-	pub story_level: u32,     
+	// pub story_level: u32,     
     pub total_battles_won: u32,
 	pub total_battles_lost: u32,    
     pub total_battles_fought: u32,    
     pub join_date: i64,
-    pub total_points:u64,  
+    pub total_points:u32,  
     pub bump: u8,                     
 }
 
@@ -36,7 +36,6 @@ pub struct UserAchievements {
     pub winner_achievement: AchievementLevel,   // Based on battles won
     pub battle_achievement: AchievementLevel,   // Based on total battles fought
     pub first_warrior_date: i64,              
-    pub first_victory_date: i64,   
     pub bump: u8,
 }
 

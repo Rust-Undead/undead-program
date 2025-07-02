@@ -4,13 +4,13 @@ use crate::constants::*;
 use crate::error::RustUndeadError;
 
 use ephemeral_rollups_sdk::anchor::commit;
-use ephemeral_rollups_sdk::ephem::commit_and_undelegate_accounts;
+use ephemeral_rollups_sdk::ephem::commit_accounts;
 
 //undelegate all we delegated before 
 #[commit]
 #[derive(Accounts)]
 #[instruction(room_id: [u8; 32])]
-pub struct SettleBattleRoom<'info> {
+pub struct EndBattleRoom<'info> {
     #[account(mut)]
     pub authority: Signer<'info>,
 
@@ -37,8 +37,10 @@ pub struct SettleBattleRoom<'info> {
     pub warrior_b: Account<'info, UndeadWarrior>,
 }
 
-impl<'info> SettleBattleRoom<'info> {
-    pub fn settle_battle_room(
+
+
+impl<'info> EndBattleRoom<'info> {
+    pub fn end_battle_room(
         &mut self,
         room_id: [u8; 32],
     ) -> Result<()> {
@@ -52,11 +54,6 @@ impl<'info> SettleBattleRoom<'info> {
             RustUndeadError::InvalidBattleState
         );
 
-        require!(
-            battle_room.winner.is_some(),
-            RustUndeadError::CannotUndelegate
-        );
-
         // Determine winner and loser
         let winner_player = battle_room.winner.unwrap();
         let is_player_a_winner = winner_player == battle_room.player_a;
@@ -67,6 +64,7 @@ impl<'info> SettleBattleRoom<'info> {
             (warrior_b, warrior_a)
         };
 
+      
         msg!("🏆 Settling battle results...");
         msg!("   Room ID: {:?}", room_id);
         msg!("   Winner: {} ({})", 
@@ -75,11 +73,12 @@ impl<'info> SettleBattleRoom<'info> {
         );
         msg!("   Battle Duration: {} seconds", battle_room.battle_duration);
 
+        // ✅ ALL DATA MODIFICATIONS BEFORE COMMIT
         // Update Warrior Battle Records
         winner_warrior.battles_won = winner_warrior.battles_won.saturating_add(1);
         loser_warrior.battles_lost = loser_warrior.battles_lost.saturating_add(1);
 
-        // Calculate Simple Experience Rewards (No Time Bonus)
+        // Calculate Simple Experience Rewards
         let base_xp_winner = 40; 
         let base_xp_loser = 20; 
         
@@ -91,7 +90,7 @@ impl<'info> SettleBattleRoom<'info> {
         
         let loser_score = battle_room.player_a_correct + battle_room.player_b_correct - winner_score;
         
-        // Simple XP calculation (removed time bonus)
+        // Simple XP calculation
         let score_bonus = (winner_score as u64) * 4;  // 4 XP per correct answer
         let winner_xp = base_xp_winner + score_bonus;
         let loser_xp = base_xp_loser + (loser_score as u64 * 2); // 2 XP per correct answer
@@ -99,13 +98,13 @@ impl<'info> SettleBattleRoom<'info> {
         winner_warrior.experience_points = winner_warrior.experience_points.saturating_add(winner_xp);
         loser_warrior.experience_points = loser_warrior.experience_points.saturating_add(loser_xp);
 
+       
         msg!("💎 Experience Awarded:");
         msg!("   {} gained {} XP (Base: {} + Score: {})", 
             winner_warrior.name, winner_xp, base_xp_winner, score_bonus);
         msg!("   {} gained {} XP (Base: {} + Score: {})", 
             loser_warrior.name, loser_xp, base_xp_loser, loser_score as u64 * 2);
 
-        // Final Battle Statistics
         msg!("📊 Final Battle Statistics:");
         msg!("   Questions Answered - A: {}, B: {}", battle_room.player_a_correct, battle_room.player_b_correct);
         msg!("   Final HP - {}: {}, {}: {}", 
@@ -117,21 +116,22 @@ impl<'info> SettleBattleRoom<'info> {
         );
         msg!("   XP Distribution - Winner: {}, Loser: {}", winner_xp, loser_xp);
 
-        // Undelegate accounts that were delegated
-        commit_and_undelegate_accounts(
+        
+        msg!("🏁 Battle settlement complete! All delegated accounts will be undelegated from rollup");
+        msg!("✅ Warriors and battle room will be returned to mainnet with updated stats");
+        msg!("🎯 Ready for next battles after cooldown period");
+
+        
+        commit_accounts(
             &self.authority,
             vec![
-                &self.battle_room.to_account_info(),  // Battle room (delegated)
-                &self.warrior_a.to_account_info(),    // Warrior A (delegated)
-                &self.warrior_b.to_account_info(),    // Warrior B (delegated)
+                &self.battle_room.to_account_info(),  
+                &self.warrior_a.to_account_info(),    
+                &self.warrior_b.to_account_info(),   
             ],
             &self.magic_context,
             &self.magic_program,
         )?;
-
-        msg!("🏁 Battle settlement complete! All delegated accounts undelegated from rollup");
-        msg!("✅ Warriors and battle room returned to mainnet with updated stats");
-        msg!("🎯 Ready for next battles after cooldown period");
 
         Ok(())
     }

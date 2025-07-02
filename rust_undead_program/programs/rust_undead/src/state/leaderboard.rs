@@ -4,13 +4,13 @@ use anchor_lang::prelude::*;
 #[derive(InitSpace)]
 pub struct Leaderboard { 
     pub top_players: [Pubkey; 20],
-    pub top_scores: [u64; 20], 
+    pub top_scores: [u32; 20], 
     pub last_updated: i64,
     pub bump: u8,
 }
 
 impl Leaderboard {
-    pub fn update_player_score(&mut self, player: Pubkey, new_score: u64) -> Result<()> {
+    pub fn update_player_score(&mut self, player: Pubkey, new_score: u32) -> Result<()> {
         // Check if player is already in leaderboard
         let mut existing_position: Option<usize> = None;
         for i in 0..20 {
@@ -38,7 +38,7 @@ impl Leaderboard {
         Ok(())
     }
 
-    fn add_new_player(&mut self, player: Pubkey, score: u64) -> Result<()> {
+    fn add_new_player(&mut self, player: Pubkey, score: u32) -> Result<()> {
         // Find the lowest score position or empty slot
         let mut insert_position: Option<usize> = None;
         
@@ -80,7 +80,7 @@ impl Leaderboard {
 
     fn sort_leaderboard(&mut self) {
        
-        let mut paired: Vec<(Pubkey, u64)> = Vec::new();
+        let mut paired: Vec<(Pubkey, u32)> = Vec::new();
         
         for i in 0..20 {
             paired.push((self.top_players[i], self.top_scores[i]));
@@ -119,7 +119,7 @@ impl Leaderboard {
         }
         false
     }
-    pub fn get_top_10(&self) -> Vec<(Pubkey, u64)> {
+    pub fn get_top_10(&self) -> Vec<(Pubkey, u32)> {
         let mut top_10 = Vec::new();
         for i in 0..10 {
             if self.top_players[i] != Pubkey::default() {
@@ -130,7 +130,7 @@ impl Leaderboard {
     }
     pub fn initialize(&mut self) -> Result<()> {
         self.top_players = [Pubkey::default(); 20];
-        self.top_scores = [0u64; 20];
+        self.top_scores = [0u32; 20];
         self.last_updated = Clock::get()?.unix_timestamp;
         msg!("Leaderboard initialized");
         Ok(())
@@ -138,7 +138,7 @@ impl Leaderboard {
 
     pub fn reset(&mut self) -> Result<()> {
         self.top_players = [Pubkey::default(); 20];
-        self.top_scores = [0u64; 20];
+        self.top_scores = [0u32; 20];
         self.last_updated = Clock::get()?.unix_timestamp;
         msg!("Leaderboard reset");
         Ok(())
