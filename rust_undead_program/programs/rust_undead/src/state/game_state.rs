@@ -7,6 +7,7 @@ pub struct Config {
 	pub total_warriors: u64,
     pub cooldown_time: u64,
 	pub total_battles: u32,
+//track battle rooms 
 	pub is_paused: bool,
 	pub created_at: i64,
     pub bump: u8, // Bump seed for PDA

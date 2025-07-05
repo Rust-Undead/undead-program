@@ -78,4 +78,10 @@ pub enum RustUndeadError {
     CannotCancelAtThisStage,
 	#[msg("Game not ready for Undelegation")]
     CannotUndelegate,
+	#[msg("Invalid image index for the selected rarity")]
+    InvalidImageIndex,
+  #[msg("Invalid warrior class and rarity combination")]
+    InvalidClassRarity,
+  #[msg("Image generation failed")]
+    ImageGenerationFailed,
 }

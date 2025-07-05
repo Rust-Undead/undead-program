@@ -5,10 +5,10 @@ seeds = false
 skip-lint = false
 
 [programs.localnet]
-rust_undead = "BJkz2oAvir58MU5AJsj7usm248iy1mPnBM1hv2TVzqxE"
+rust_undead = "Fd6VNGBUidnLf9cS3q9mMbWBXZDFLA1QSdm88nFEEjty"
 
 [programs.devnet]
-rust_undead = "BJkz2oAvir58MU5AJsj7usm248iy1mPnBM1hv2TVzqxE"
+rust_undead = "Fd6VNGBUidnLf9cS3q9mMbWBXZDFLA1QSdm88nFEEjty"
 
 [registry]
 url = "https://api.apr.dev"

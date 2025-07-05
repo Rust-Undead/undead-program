@@ -10,6 +10,7 @@ pub struct BattleRoom {
     pub warrior_a: Pubkey,                    // Player A's warrior
     pub warrior_b: Option<Pubkey>,            // Player B's warrior (None until joined)
     pub selected_concepts: [u8; 5],           // VRF-selected concept IDs [2, 5, 7, 9, 10]
+    pub selected_topics : [u8; 10],
     pub selected_questions: [u16; 10],        // VRF-selected question IDs [23, 37,68, ...]
     pub correct_answers: [bool; 10],          // Correct answers for questions
     pub state: BattleState,                   // Current battle phase

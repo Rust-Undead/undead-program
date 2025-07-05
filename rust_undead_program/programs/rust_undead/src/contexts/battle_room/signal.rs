@@ -49,7 +49,7 @@ impl<'info> SignalReady<'info> {
         room_id: [u8; 32],
         warrior_name: String,
     ) -> Result<()> {
-
+// check if playerA is ready and let last player perform the rollup delegate. if player a calls, check if b is, if false, just set it as player A, if player b is calling, if a is ready call 
         let battle_room = &mut self.battle_room;
         let player = self.player.key();
 

@@ -22,7 +22,39 @@ pub struct UndeadWarrior {
 	pub last_battle_at: i64,  
   pub cooldown_expires_at: i64,
 	pub bump: u8,
+
+	//img fields
+	pub image_rarity: ImageRarity,
+  pub image_index: u8,
+  #[max_len(200)]
+  pub image_uri: String,
 }
+
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ImageRarity {
+	Common,
+	Uncommon,
+	Rare
+}
+
+impl Space for ImageRarity {
+	const INIT_SPACE: usize = 1;
+}
+
+impl std::fmt::Display for ImageRarity {
+	fn fmt(
+		&self,
+		f: &mut std::fmt::Formatter<'_>
+	) -> std::fmt::Result{
+		match self {
+            ImageRarity::Common => write!(f, "common"),
+            ImageRarity::Uncommon => write!(f, "uncommon"),
+            ImageRarity::Rare => write!(f, "rare"),
+        }
+	}
+ }
+
+
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, Debug, PartialEq, Eq)]
 pub enum WarriorClass {
@@ -35,3 +67,17 @@ pub enum WarriorClass {
 impl Space for WarriorClass {
 	const INIT_SPACE : usize = 1;
 }
+
+impl std::fmt::Display for WarriorClass {
+	fn fmt(
+		&self,
+		f: &mut std::fmt::Formatter<'_>
+	) -> std::fmt::Result{
+		match self {
+						WarriorClass::Validator => write!(f, "Validator Warrior"),
+						WarriorClass::Oracle => write!(f, "Oracle Warrior"),
+						WarriorClass::Guardian => write!(f, "Guardian Warrior"),
+						WarriorClass::Daemon => write!(f, "Daemon Warrior"),
+        }
+	}
+ }

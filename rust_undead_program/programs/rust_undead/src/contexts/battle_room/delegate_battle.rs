@@ -9,7 +9,7 @@ use ephemeral_rollups_sdk::cpi::DelegateConfig;
 #[instruction(room_id: [u8; 32], player_a: Pubkey, warrior_a_name: String, player_b: Pubkey, warrior_b_name: String)]
 pub struct DelegateBattle<'info> {
     #[account(mut)]
-    pub authority: Signer<'info>,
+    pub signer: Signer<'info>, //we need to be users doing this call
 
     /// CHECK: The Battle Room account we are delegating
     #[account(
@@ -52,21 +52,21 @@ impl<'info> DelegateBattle<'info> {
         // Delegate battle room
         
         self.delegate_battle_room(
-            &self.authority,
+            &self.signer,
             &[BATTLE, room_id.as_ref()],
             DelegateConfig::default(),
         )?;
         
         // Delegate warrior A
         self.delegate_warrior_a(
-            &self.authority,
+            &self.signer,
             &[UNDEAD_WARRIOR, player_a.as_ref(), warrior_a_name.as_bytes()],
             DelegateConfig::default(),
         )?;
         
         // Delegate warrior B
         self.delegate_warrior_b(
-            &self.authority,
+            &self.signer,
             &[UNDEAD_WARRIOR, player_b.as_ref(), warrior_b_name.as_bytes()],
             DelegateConfig::default(),
         )?;

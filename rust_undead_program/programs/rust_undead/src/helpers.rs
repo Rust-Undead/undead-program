@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 use anchor_lang::solana_program::hash::hash;
 use crate::state::*;
-
+use crate::constants::*;
 
 pub fn is_warrior_ready(warrior: &UndeadWarrior) -> bool {
     let current_time = Clock::get().unwrap().unix_timestamp;
@@ -117,4 +117,198 @@ pub fn calculate_deterministic_damage_with_keys(
     msg!("   Final Damage: {}", final_damage);
     
     Ok(final_damage)
+}
+
+pub fn get_class_folder_hash(class: WarriorClass) -> &'static str {
+    match class {
+        WarriorClass::Guardian => GUARDIAN_FOLDER_HASH,
+        WarriorClass::Validator => VALIDATOR_FOLDER_HASH,
+        WarriorClass::Oracle => ORACLE_FOLDER_HASH,
+        WarriorClass::Daemon => DAEMON_FOLDER_HASH,
+    }
+}
+
+// Generate image selection and URL from VRF randomness
+// pub fn generate_warrior_image(
+//     randomness_slice: &[u8; 32],
+//     class: WarriorClass
+// ) -> Result<(ImageRarity, u8, String)> {
+    
+//     // Step 1: Determine rarity using VRF (65% common, 25% uncommon, 10% rare) range 1-100
+//     let rarity_roll = ephemeral_vrf_sdk::rnd::random_u8_with_range(&randomness_slice, 1, 101);
+    
+//     let (rarity, rarity_prefix, max_count) = match rarity_roll {
+//         1..=65 => (ImageRarity::Common, "c", COMMON_COUNT),      // 65% chance
+//         66..=90 => (ImageRarity::Uncommon, "u", UNCOMMON_COUNT), // 25% chance
+//         91..=100 => (ImageRarity::Rare, "r", RARE_COUNT),        // 10% chance
+//         _ => (ImageRarity::Common, "c", COMMON_COUNT),
+//     };
+    
+//     // Step 2: Select random image within rarity (1-based numbering: c1, c2, etc.)
+//     let image_number = ephemeral_vrf_sdk::rnd::random_u8_with_range(&randomness_slice, 1, max_count + 1);
+    
+//     // Step 3: Construct full IPFS URL
+//     let folder_hash = get_class_folder_hash(class);
+//     let image_url = format!(
+//         "{}/{}/{}{}.png",
+//         IPFS_GATEWAY,
+//         folder_hash,
+//         rarity_prefix,
+//         image_number
+//     );
+    
+//     msg!(
+//         "🎨 Selected {} {} image: {}{}.png → {}",
+//         class.to_string(),
+//         rarity.to_string(),
+//         rarity_prefix,
+//         image_number,
+//         image_url
+//     );
+    
+//     Ok((rarity, image_number, image_url))
+// }
+
+
+pub fn temp_img_rand(
+    player_key: Pubkey,
+    dna: [u8; 8], 
+    client_seed: u8,
+    class: WarriorClass
+) -> Result<(ImageRarity, u8, String)> {
+
+     msg!("Generating random Image Stats for warrior: {} (class: {:?}) for", player_key, class);
+
+    //first set seeds 
+    let mut seed_data = Vec::new();
+    //1. extend the vec from slice of roomid 
+    seed_data.extend_from_slice(&dna);
+    //2. push the client seed
+    seed_data.push(client_seed);
+    // 3. Extend the player key
+    seed_data.extend_from_slice(&player_key.to_bytes());
+
+    //4. Hash the seed to get a pseudo-random value
+    let hash_result = hash(&seed_data);
+    //  this gives us a u16 
+    let rarity_random = u16::from_le_bytes([hash_result.to_bytes()[0], hash_result.to_bytes()[1]]);
+    // determine range (65% common, 25% uncommon, 10% rare) range 1-100
+
+    let image_index_random = u16::from_le_bytes([hash_result.to_bytes()[2], hash_result.to_bytes()[3]]);
+    // since u16 range is 0 - 65535 we can have the modulo with 100 where it is either 1 - 100 and not more 
+    let rarity_roll = (rarity_random%100) + 1; // range 1 - 100
+    
+    let (rarity, rarity_prefix, max_count) = match rarity_roll {
+        1..=65 => (ImageRarity::Common, "c", COMMON_COUNT),
+        66..=90 => (ImageRarity::Uncommon, "u", UNCOMMON_COUNT),
+        91..=100 => (ImageRarity::Rare, "r", RARE_COUNT),
+        _=> (ImageRarity::Common, "c", COMMON_COUNT),
+    };
+
+    let image_number = ((image_index_random % max_count as u16) + 1) as u8;
+
+    // Step 3: Construct full IPFS URL
+    let folder_hash = get_class_folder_hash(class);
+    let image_url = format!(
+        "{}/{}/{}{}.png",
+        IPFS_GATEWAY,
+        folder_hash,
+        rarity_prefix,
+        image_number
+    );
+    
+    msg!(
+        "🎨 Selected {} {} image: {}{}.png → {}",
+        class.to_string(),
+        rarity.to_string(),
+        rarity_prefix,
+        image_number,
+        image_url
+    );
+    
+    Ok((rarity, image_number, image_url))
+
+
+
+}
+
+
+// stats random 
+pub fn temp_stats_rand(
+    player_key: Pubkey,
+    dna: [u8; 8], 
+    client_seed: u8,
+    class: WarriorClass,
+    
+) -> Result<(u16, u16, u16)> {
+
+msg!("Generating random combat stats for warrior: {} (class: {:?}) for ", player_key, class);
+
+let mut seed_data = Vec::new();
+    //1. extend the vec from slice of roomid 
+    seed_data.extend_from_slice(&dna);
+    //2. push the client seed
+    seed_data.push(client_seed);
+    // 3. Extend the player key
+    seed_data.extend_from_slice(&player_key.to_bytes());
+    let hash_results = hash(&seed_data);
+
+    let attack_rand = u16::from_le_bytes([hash_results.to_bytes()[0], hash_results.to_bytes()[1]]);
+
+    let defense_rand = u16::from_le_bytes([hash_results.to_bytes()[2], hash_results.to_bytes()[3]]);
+
+    let knowledge_rand = u16::from_le_bytes([hash_results.to_bytes()[4], hash_results.to_bytes()[5]]);
+
+    // range for stats in general is 40 - 140, in such case:
+    // modulo formula is (rand%n) + min
+    // where n = (max - min) + 1
+   
+    let (attack, defense, knowledge) = match class {
+        WarriorClass::Validator => {
+        // Balanced fighter - good at everything (60-99 range)
+        //1) attack is of range 60 - 100
+        //2) def is 40 - 100 and know is 40 - 80
+        let attack = (attack_rand%41) + 60;
+        let defense = (defense_rand%61) + 40;
+        let knowledge = (knowledge_rand%41) + 40;
+         (attack, defense, knowledge)
+        },
+        WarriorClass::Oracle => {
+        let attack = (attack_rand%51) + 50;
+        let defense = (defense_rand%41) + 40;
+        let knowledge = (knowledge_rand%42) + 100;
+         (attack, defense, knowledge)
+        },
+        WarriorClass::Guardian =>{
+        let attack = (attack_rand%22) + 40;
+        let defense = (defense_rand%41) + 100;
+        let knowledge = (knowledge_rand%51) + 50;
+         (attack, defense, knowledge)
+        }, 
+
+        WarriorClass::Daemon => {
+        let attack = (attack_rand%41) + 100;
+        let defense = (defense_rand%22) + 40;
+        let knowledge = (knowledge_rand%51) + 50;
+         (attack, defense, knowledge)
+        }      
+    };
+
+        msg!(
+        "⚔️ Combat Profile: ATK {} | DEF {} | KNOW {} | Strategy: {}",
+        attack,
+        defense, 
+        knowledge,
+        match class {
+            WarriorClass::Validator => "Balanced fighter",
+            WarriorClass::Oracle => "Knowledge specialist", 
+            WarriorClass::Guardian => "Tank defender",
+            WarriorClass::Daemon => "Glass cannon",
+        }
+    );
+
+
+
+
+Ok((attack, defense, knowledge))
 }
